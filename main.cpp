@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
             << "  polygon.exe <in> <out>\n";
         return 1;
     }
-
+    // если argc==1 — остаются input.txt и
 
     // 1) Синтаксическое чтение
     FileParser parser;
