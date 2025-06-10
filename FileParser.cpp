@@ -217,15 +217,24 @@ bool FileParser::checkInvalidElementCount(const std::string& line, Error& err, i
 }
 
 bool FileParser::checkInvalidCharacters(const std::string& line, Error& err, int lineNumber) {
+    // Перебираем все символы в строке
     for (char c : line) {
+        // Проверяем, является ли символ цифрой, минусом или точкой с запятой
         if (!(std::isdigit(static_cast<unsigned char>(c)) || c == '-' || c == ';')) {
+            // Если встретился недопустимый символ, фиксируем ошибку
             err.type = ErrorType::invalidCharacters;
+            // Указываем номер строки с ошибкой
             err.errorLineNumber = lineNumber;
+            // Записываем содержимое строки с ошибкой
             err.errorLineContent = line;
+            // Формируем сообщение об ошибке
             err.errorMessage = "Входные данные содержат некорректные символы. Разрешены только числа, точки с запятой и переводы строк.";
+            // Возвращаем false — ошибка найдена
             return false;
         }
     }
+
+    // Если все символы корректные, возвращаем true
     return true;
 }
 
