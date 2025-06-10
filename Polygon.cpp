@@ -16,13 +16,15 @@ long long Polygon::signedArea() const {
 
 // private: определение ориентации трЄх точек (p, q, r)
 int Polygon::orientation(const Point& p, const Point& q, const Point& r) const {
+    // ¬ычисл€ем ориентированное значение (площадь параллелограмма)
     long long val = (long long)(q.y - p.y) * (r.x - q.x) - (long long)(q.x - p.x) * (r.y - q.y);
-    if (val == 0) return 0;
-    return (val > 0) ? 1 : 2;
+    if (val == 0) return 0;            // 0 Ч точки коллинеарны
+    return (val > 0) ? 1 : 2;          // 1 Ч по часовой, 2 Ч против часовой стрелки
 }
 
 // private: проверка, что точка q лежит на отрезке pr
 bool Polygon::onSegment(const Point& p, const Point& q, const Point& r) const {
+    // ѕровер€ем, что координаты q лежат между p и r по обеим ос€м
     return (std::min(p.x, r.x) <= q.x && q.x <= std::max(p.x, r.x) &&
         std::min(p.y, r.y) <= q.y && q.y <= std::max(p.y, r.y));
 }
