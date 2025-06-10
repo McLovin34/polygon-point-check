@@ -19,27 +19,31 @@ int main(int argc, char* argv[]) {
     // Устанавливаем локаль для корректного вывода символов в зависимости от системных настроек
     std::setlocale(LC_ALL, "");  // Устанавливаем локаль из окружения
 
-    std::string inputPath = "input.txt";
-    std::string outputPath = "output.txt";
+    std::string inputPath = "input.txt";  // Задаём путь к файлу входных данных по умолчанию
+    std::string outputPath = "output.txt";  // Задаём путь к файлу выходных данных по умолчанию
 
+    // Обработка аргументов командной строки
     if (argc == 2) {
+        // Если указан только один аргумент (путь к входному файлу)
         // polygon.exe <input>
-        inputPath = argv[1];
+        inputPath = argv[1];  // Присваиваем путь к входному файлу
     }
     else if (argc == 3) {
+        // Если указаны два аргумента (входной и выходной файл)
         // polygon.exe <input> <output>
-        inputPath = argv[1];
-        outputPath = argv[2];
+        inputPath = argv[1];  // Присваиваем путь к входному файлу
+        outputPath = argv[2];  // Присваиваем путь к выходному файлу
     }
     else if (argc > 3) {
+        // Если аргументов больше двух — выводим сообщение об ошибке
         std::cerr << "Ошибка: слишком много аргументов.\n"
             << "Использование:\n"
             << "  polygon.exe             (использует input.txt→output.txt)\n"
             << "  polygon.exe <in>\n"
-            << "  polygon.exe <in> <out>\n";
-        return 1;
+            << "  polygon.exe <in> <out>\n";  // Сообщаем правильное использование программы
+        return 1;  // Завершаем программу с кодом ошибки 1
     }
-    // если argc==1 — остаются input.txt и
+    // если argc==1 — остаются input.txt и output.txt
 
     // 1) Синтаксическое чтение
     FileParser parser;
