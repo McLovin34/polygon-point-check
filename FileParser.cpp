@@ -240,13 +240,20 @@ bool FileParser::checkInvalidCharacters(const std::string& line, Error& err, int
 
 bool FileParser::checkNonIntegerCoordinates(const std::string& line, Error& err, int lineNumber) {
     int x, y;
+    // Попытка распарсить строку line как две целые координаты (x и y)
     if (!parsePointLine(line, x, y)) {
+        // Если парсинг не удался — ошибка: координаты не являются целыми числами
         err.type = ErrorType::pointNotInteger;
+        // Указываем номер строки с ошибкой
         err.errorLineNumber = lineNumber;
+        // Записываем содержимое строки, в которой возникла ошибка
         err.errorLineContent = line;
+        // Формируем сообщение об ошибке
         err.errorMessage = "Координата не является целым числом. Допустимы только целые числа.";
+        // Возвращаем false — ошибка при парсинге
         return false;
     }
+    // Если парсинг прошёл успешно, возвращаем true
     return true;
 }
 
