@@ -73,8 +73,8 @@ int main(int argc, char* argv[]) {
         return 4;  // Завершаем программу с кодом ошибки 4
     }
 
-    // 4) Проверка принадлежности точки
-    bool belongs = polygon.contains(testPoint);
+    // 4) Проверка принадлежности точки многоугольнику
+    bool belongs = polygon.contains(testPoint);  // Проверяем, принадлежит ли точка многоугольнику
 
     // 5) Запись результата
     if (!IOManager::writeResult(outputPath, belongs, err)) {
