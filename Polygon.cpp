@@ -56,63 +56,65 @@ bool Polygon::checkIntersection(const Point& a1, const Point& a2, const Point& b
 }
 
 bool Polygon::checkPolygonShape(Error& err) const {
-    int n = (int)vertices.size();
-    // Коллинеарные тройки
+    int n = (int)vertices.size();  // Получаем количество вершин многоугольника
+
+    // Проверка: среди каждой последовательной тройки вершин не должно быть коллинеарных
     for (int i = 0; i < n; ++i) {
         const Point& a = vertices[i];
         const Point& b = vertices[(i + 1) % n];
         const Point& c = vertices[(i + 2) % n];
-        if (checkCollinearity(a, b, c)) {
-            err.type = ErrorType::invalidPolygon;
-            err.errorLineNumber = i + 3;
-            err.errorLineContent = std::to_string(c.x) + ";" + std::to_string(c.y);
+        if (checkCollinearity(a, b, c)) {  // Если три последовательные вершины лежат на одной прямой
+            err.type = ErrorType::invalidPolygon;  // Устанавливаем тип ошибки: некорректный многоугольник
+            err.errorLineNumber = i + 3;  // Указываем номер строки с ошибочной вершиной
+            err.errorLineContent = std::to_string(c.x) + ";" + std::to_string(c.y);  // Сохраняем координаты этой вершины
             err.errorMessage = "Точки " + std::to_string(a.x) + ";" + std::to_string(a.y) +
                 ", " + std::to_string(b.x) + ";" + std::to_string(b.y) +
-                ", " + std::to_string(c.x) + ";" + std::to_string(c.y) + " коллинеарны.";
-            return false;
+                ", " + std::to_string(c.x) + ";" + std::to_string(c.y) + " коллинеарны.";  // Подробное сообщение
+            return false;  // Возвращаем false — найден некорректный участок
         }
     }
 
-    // Самопересечения
+    // Проверка: отсутствие самопересечений (никакие не-соседние рёбра не должны пересекаться)
     for (int i = 0; i < n; ++i) {
         Point a1 = vertices[i];
         Point a2 = vertices[(i + 1) % n];
         for (int j = i + 2; j < n; ++j) {
-            if (j == i) continue;
-            if (j == (i + 1) % n) continue;
-            if (i == 0 && j == n - 1) continue;
+            if (j == i) continue;  // Пропускаем совпадающие индексы (невозможно)
+            if (j == (i + 1) % n) continue;  // Пропускаем смежные рёбра (имеют общую вершину)
+            if (i == 0 && j == n - 1) continue;  // Пропускаем первое и последнее рёбра (смежные по кругу)
             Point b1 = vertices[j];
             Point b2 = vertices[(j + 1) % n];
-            if (checkIntersection(a1, a2, b1, b2)) {
-                err.type = ErrorType::invalidPolygon;
-                err.errorLineNumber = j + 2;
-                err.errorLineContent = std::to_string(b2.x) + ";" + std::to_string(b2.y);
-                err.errorMessage = "Входные данные формируют некорректный многоугольник: пересечение рёбер.";
-                return false;
+            if (checkIntersection(a1, a2, b1, b2)) {  // Проверяем пересечение двух рёбер
+                err.type = ErrorType::invalidPolygon;  // Ошибка: некорректный многоугольник
+                err.errorLineNumber = j + 2;  // Указываем номер строки второй вершины второго ребра
+                err.errorLineContent = std::to_string(b2.x) + ";" + std::to_string(b2.y);  // Сохраняем координаты вершины
+                err.errorMessage = "Входные данные формируют некорректный многоугольник: пересечение рёбер.";  // Подробное сообщение
+                return false;  // Возвращаем false — найдено пересечение рёбер
             }
         }
     }
 
-    // Невыпуклость: ищем изменения знака в векторных произведениях
+    // Проверка невыпуклости: ищем наличие разных знаков у векторных произведений соседних рёбер
     bool gotPos = false, gotNeg = false;
     for (int i = 0; i < n; ++i) {
         const Point& p0 = vertices[i];
         const Point& p1 = vertices[(i + 1) % n];
         const Point& p2 = vertices[(i + 2) % n];
+        // Векторное произведение (для определения направления "поворота")
         long long cross = (long long)(p1.x - p0.x) * (p2.y - p1.y) - (long long)(p1.y - p0.y) * (p2.x - p1.x);
         if (cross > 0) gotPos = true;
         if (cross < 0) gotNeg = true;
-        if (gotPos && gotNeg) break;
+        if (gotPos && gotNeg) break;  // Если нашли и положительный и отрицательный знак — многоугольник невыпуклый
     }
-    if (!(gotPos && gotNeg)) {
-        err.type = ErrorType::invalidPolygon;
+    if (!(gotPos && gotNeg)) {  // Если векторные произведения только одного знака — многоугольник выпуклый
+        err.type = ErrorType::invalidPolygon;  // Ошибка: многоугольник не невыпуклый (выпуклый)
         err.errorLineNumber = 0;
         err.errorLineContent = "";
-        err.errorMessage = "Многоугольник выпуклый.";
-        return false;
+        err.errorMessage = "Многоугольник выпуклый.";  // Подробное сообщение
+        return false;  // Возвращаем false — многоугольник не проходит проверку на невыпуклость
     }
 
-    return true;
+    return true;  // Все проверки пройдены успешно: многоугольник невыпуклый, без коллинеарных троек и самопересечений
 }
 
 bool Polygon::isValid(Error& err) const {
