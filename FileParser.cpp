@@ -173,13 +173,20 @@ bool FileParser::readFromFile(const std::string& fileName,
 }
 
 bool FileParser::checkEmptyLine(const std::string& line, Error& err, int lineNumber) {
+    // Проверяем: если строка пустая
     if (line.empty()) {
+        // Устанавливаем тип ошибки: найдена пустая строка
         err.type = ErrorType::emptyLineFound;
+        // Записываем номер строки, где обнаружена пустая строка
         err.errorLineNumber = lineNumber;
+        // Очищаем содержимое строки (пустая строка)
         err.errorLineContent = "";
+        // Формируем подробное сообщение об ошибке
         err.errorMessage = "Обнаружена пустая строка во входных данных. Удалите лишние строки.";
+        // Возвращаем false — обнаружена ошибка
         return false;
     }
+    // Строка не пустая — всё хорошо
     return true;
 }
 
