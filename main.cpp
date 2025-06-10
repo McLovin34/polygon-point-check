@@ -76,13 +76,12 @@ int main(int argc, char* argv[]) {
     // 4) Проверка принадлежности точки многоугольнику
     bool belongs = polygon.contains(testPoint);  // Проверяем, принадлежит ли точка многоугольнику
 
-    // 5) Запись результата
-    if (!IOManager::writeResult(outputPath, belongs, err)) {
-        IOManager::writeErrorToConsole(err);
-        return 5;
+    // 5) Запись результата в файл
+    if (!IOManager::writeResult(outputPath, belongs, err)) {  // Если не удаётся записать результат в файл
+        IOManager::writeErrorToConsole(err);  // Выводим ошибку в консоль
+        return 5;  // Завершаем программу с кодом ошибки 5
     }
 
-    // Печатать окончательный результат в консоль
-    std::cout << (belongs ? "принадлежит" : "не принадлежит") << std::endl;
-    return 0;
-}
+    // Печать окончательного результата в консоль
+    std::cout << (belongs ? "принадлежит" : "не принадлежит") << std::endl;  // Выводим сообщение о результате
+    return 0;  // Завершаем программу с кодом успеха 0
