@@ -1,0 +1,10 @@
+# .gitignore
+*.o
+*.exe
+*.log
+build/
+.vscode/
+*.user
+*.class
+*.pyc
+.vs/
