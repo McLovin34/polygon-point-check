@@ -118,14 +118,17 @@ bool Polygon::checkPolygonShape(Error& err) const {
 }
 
 bool Polygon::isValid(Error& err) const {
-    int n = (int)vertices.size();
+    int n = (int)vertices.size();  // Получаем количество вершин
+
+    // Проверка: количество вершин должно быть не менее 3
     if (n < 3) {
-        err.type = ErrorType::invalidVertexCount;
-        err.errorLineNumber = 1;
-        err.errorLineContent = std::to_string(n);
-        err.errorMessage = "Недостаточно вершин: " + std::to_string(n);
-        return false;
+        err.type = ErrorType::invalidVertexCount;  // Устанавливаем тип ошибки
+        err.errorLineNumber = 1;                   // Указываем номер строки (первая строка)
+        err.errorLineContent = std::to_string(n);  // Сохраняем количество вершин
+        err.errorMessage = "Недостаточно вершин: " + std::to_string(n);  // Сообщение об ошибке
+        return false;  // Многоугольник невалиден
     }
+    // Проверка: количество вершин не превышает 1000
     if (n > 1000) {
         err.type = ErrorType::invalidVertexCount;
         err.errorLineNumber = 1;
@@ -133,47 +136,53 @@ bool Polygon::isValid(Error& err) const {
         err.errorMessage = "Количество вершин = " + std::to_string(n) + " (максимум 1000)";
         return false;
     }
-    // Проверка диапазона каждой вершины
+
+    // Проверка: каждая вершина должна быть в диапазоне [-999, 999]
     for (int i = 0; i < n; ++i) {
         if (vertices[i].x < -999 || vertices[i].x > 999 || vertices[i].y < -999 || vertices[i].y > 999) {
-            err.type = ErrorType::coordinateOutOfRange;
-            err.errorLineNumber = i + 2;
-            err.errorLineContent = std::to_string(vertices[i].x) + ";" + std::to_string(vertices[i].y);
+            err.type = ErrorType::coordinateOutOfRange;  // Тип ошибки — координаты вне диапазона
+            err.errorLineNumber = i + 2;  // Номер строки (учитываем смещение)
+            err.errorLineContent = std::to_string(vertices[i].x) + ";" + std::to_string(vertices[i].y);  // Координаты
             err.errorMessage = "Координаты вершины (" + std::to_string(vertices[i].x) + ";" +
                 std::to_string(vertices[i].y) + ") выходят за допустимый диапазон [-999, 999].";
             return false;
         }
     }
-    // Дубликаты
+
+    // Проверка: отсутствие дубликатов среди вершин
     {
-        std::set<Point> seen;
+        std::set<Point> seen;  // Множество для проверки уникальности вершин
         for (int i = 0; i < n; ++i) {
-            if (seen.find(vertices[i]) != seen.end()) {
+            if (seen.find(vertices[i]) != seen.end()) {  // Если вершина уже была — ошибка
                 err.type = ErrorType::duplicateVertex;
-                err.errorLineNumber = i + 2;
+                err.errorLineNumber = i + 2;  // Номер строки с дубликатом
                 err.errorLineContent = std::to_string(vertices[i].x) + ";" + std::to_string(vertices[i].y);
                 err.errorMessage = "Входные данные содержат дублирующиеся вершины: (" +
                     std::to_string(vertices[i].x) + ";" + std::to_string(vertices[i].y) + ").";
                 return false;
             }
-            seen.insert(vertices[i]);
+            seen.insert(vertices[i]);  // Добавляем вершину в множество
         }
     }
-    // Порядок обхода
+
+    // Проверка порядка обхода вершин (ориентация — положительная площадь)
     long long area2 = signedArea();
-    if (area2 <= 0) {
+    if (area2 <= 0) {  // Если площадь нулевая или отрицательная — порядок неверный
         err.type = ErrorType::wrongOrder;
         err.errorLineNumber = 0;
         err.errorLineContent = "";
         err.errorMessage = "Вершины многоугольника заданы не в порядке обхода. Упорядочьте их корректно.";
         return false;
     }
-    // Форма (коллинеарность, пересечения, невыпуклость)
+
+    // Геометрическая проверка формы: нет коллинеарных троек, нет пересечений, невыпуклость
     if (!checkPolygonShape(err)) {
-        return false;
+        return false;  // Если проверка не пройдена — ошибка уже записана в err
     }
-    return true;
+
+    return true;  // Многоугольник валиден по всем критериям
 }
+
 
 bool Polygon::contains(const Point& p) const {
     int n = (int)vertices.size();
