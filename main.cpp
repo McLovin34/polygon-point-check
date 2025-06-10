@@ -11,13 +11,13 @@
 #include "IOManager.h"
 
 int main(int argc, char* argv[]) {
-    // Переключаем консоль Windows в UTF-8 
+    // Переключаем консоль Windows в кодировку UTF-8, чтобы корректно выводить символы
 #ifdef _WIN32
-    system("chcp 65001 > nul");
+    system("chcp 65001 > nul");  // Команда для Windows, меняем кодовую страницу на UTF-8
 #endif
 
-    // Устанавливаем локаль из окружения 
-    std::setlocale(LC_ALL, "");
+    // Устанавливаем локаль для корректного вывода символов в зависимости от системных настроек
+    std::setlocale(LC_ALL, "");  // Устанавливаем локаль из окружения
 
     std::string inputPath = "input.txt";
     std::string outputPath = "output.txt";
