@@ -4,13 +4,14 @@
 
 // private: вычисление ориентированной площади (удвоенной) — формула Гаусса
 long long Polygon::signedArea() const {
-    long long area2 = 0;
-    int n = (int)vertices.size();
-    for (int i = 0; i < n; ++i) {
-        int j = (i + 1) % n;
+    long long area2 = 0;  // Переменная для хранения удвоенной площади
+    int n = (int)vertices.size();  // Количество вершин в многоугольнике
+    for (int i = 0; i < n; ++i) {  // Проходим по всем вершинам
+        int j = (i + 1) % n;  // Индекс следующей вершины (с учётом замыкания контура)
+        // Прибавляем разность произведений координат (формула Гаусса)
         area2 += (long long)vertices[i].x * vertices[j].y - (long long)vertices[j].x * vertices[i].y;
     }
-    return area2;
+    return area2;  // Возвращаем удвоенную площадь (может быть отрицательной — зависит от ориентации)
 }
 
 // private: определение ориентации трёх точек (p, q, r)
