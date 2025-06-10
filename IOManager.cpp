@@ -26,11 +26,13 @@ bool IOManager::writeResult(const std::string& fileName, bool result, Error& err
 }
 
 void IOManager::writeErrorToConsole(const Error& err) {
+    // Если ошибок нет
     if (err.type == ErrorType::noError) {
-        std::cout << "Ошибок не найдено\n";
+        std::cout << "Ошибок не найдено\n";  // Выводим сообщение, что ошибок нет
     }
     else {
-        std::cout << err.generateErrorMessage() << std::endl;
+        // Если ошибка найдена, выводим сгенерированное сообщение об ошибке
+        std::cout << err.generateErrorMessage() << std::endl;  // Используем метод generateErrorMessage для формирования полного сообщения
     }
 }
 
