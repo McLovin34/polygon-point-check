@@ -185,25 +185,27 @@ bool Polygon::isValid(Error& err) const {
 
 
 bool Polygon::contains(const Point& p) const {
-    int n = (int)vertices.size();
-    bool inside = false;
+    int n = (int)vertices.size();  // Получаем количество вершин многоугольника
+    bool inside = false;  // Флаг принадлежности точки (чётное/нечётное число пересечений)
     for (int i = 0; i < n; ++i) {
-        const Point& a = vertices[i];
-        const Point& b = vertices[(i + 1) % n];
-        // Если точка лежит на ребре
+        const Point& a = vertices[i];                // Текущая вершина
+        const Point& b = vertices[(i + 1) % n];      // Следующая вершина (с учётом замыкания полигона)
+        // Проверка: лежит ли точка p на текущем ребре
         if (orientation(a, b, p) == 0 && onSegment(a, p, b)) {
-            return true;
+            return true;  // Если точка p лежит на ребре, считаем её внутри многоугольника
         }
-        bool cond1 = (a.y > p.y) != (b.y > p.y);
+        // Проверяем, пересекает ли горизонтальный луч из точки p это ребро
+        bool cond1 = (a.y > p.y) != (b.y > p.y);  // Проверяем, что y-координаты по разные стороны от y точки p
         if (cond1) {
+            // Находим x-координату точки пересечения ребра с горизонтальным лучом из p
             double xinters = (double)(b.x - a.x) * (double)(p.y - a.y) / (double)(b.y - a.y) + a.x;
             if (xinters == p.x) {
-                return true;
+                return true;  // Если точка пересечения совпала с p, считаем, что p лежит на границе (внутри)
             }
             if (xinters > p.x) {
-                inside = !inside;
+                inside = !inside;  // Если точка пересечения правее p, инвертируем флаг принадлежности (алгоритм "чётности пересечений")
             }
         }
     }
-    return inside;
+    return inside;  // Вернём итоговое значение: true — внутри, false — вне многоугольника
 }
