@@ -11,37 +11,39 @@ bool FileParser::readFromFile(const std::string& fileName,
     // Открываем входной файл для чтения по имени fileName
     std::ifstream fin(fileName);
 
-    // Записываем путь к входному файлу в объект ошибки (для сообщения об ошибках)
+    // Записываем путь к входному файлу в объект ошибки (для информативности)
     err.errorInputFileWay = fileName;
 
-    // Проверяем, успешно ли открылся файл
+    // Проверяем, успешно ли открыт файл
     if (!fin.is_open()) {
-        // Если файл не открыт, устанавливаем тип ошибки "входной файл не существует"
+        // Если файл не открыт — устанавливаем тип ошибки "входной файл не существует"
         err.type = ErrorType::inputFileNotExist;
-        // Записываем дополнительное сообщение об ошибке
+        // Записываем детальное сообщение об ошибке
         err.errorMessage = "Неверно указан файл с входными данными. Возможно, файл не существует или нет прав на чтение.";
-        // Возвращаем false — файл не удалось открыть
+        // Возвращаем false — невозможно продолжить
         return false;
     }
 
-    std::string line;
-    int lineNumber = 0;
+    std::string line;   // Строка для хранения текущей строки файла
+    int lineNumber = 0; // Счётчик номера текущей строки (для отчётности об ошибках)
 
     // Чтение первой строки: количество вершин
     if (!std::getline(fin, line)) {
-        // Пустой файл
+        // Если не удалось прочитать первую строку — файл пуст
         err.type = ErrorType::emptyFile;
         err.errorLineNumber = 0;
         err.errorLineContent = "";
         err.errorMessage = "Пустой файл";
         return false;
     }
-    ++lineNumber;
+    ++lineNumber; // Увеличиваем номер строки (теперь lineNumber = 1)
 
+    // Проверка: не является ли строка пустой или состоящей только из пробелов
     if (!checkEmptyLine(line, err, lineNumber)) return false;
 
     // Первая строка НЕ должна содержать символ ';'
     if (line.find(';') != std::string::npos) {
+        // Если есть лишние элементы — ошибка формата первой строки
         err.type = ErrorType::wrongElementCountInLine;
         err.errorLineNumber = lineNumber;
         err.errorLineContent = line;
@@ -50,15 +52,16 @@ bool FileParser::readFromFile(const std::string& fileName,
         return false;
     }
 
-    // Попробуем преобразовать в int
+    // Попытка преобразовать строку в целое число N (количество вершин)
     int N;
     try {
         size_t pos;
-        long tmp = std::stol(line, &pos);
-        if (pos != line.size()) throw std::invalid_argument("not integer");
+        long tmp = std::stol(line, &pos);         // Преобразуем строку в long
+        if (pos != line.size()) throw std::invalid_argument("not integer"); // Проверка, что вся строка — число
         N = static_cast<int>(tmp);
     }
     catch (...) {
+        // Если не получилось преобразовать — ошибка: не целое число
         err.type = ErrorType::pointNotInteger;
         err.errorLineNumber = lineNumber;
         err.errorLineContent = line;
@@ -66,7 +69,7 @@ bool FileParser::readFromFile(const std::string& fileName,
         return false;
     }
 
-    // Проверка диапазона N: [3, 1000]
+    // Проверяем, что N в диапазоне [3, 1000]
     if (N < 3 || N > 1000) {
         err.type = ErrorType::invalidVertexCount;
         err.errorLineNumber = lineNumber;
@@ -75,27 +78,32 @@ bool FileParser::readFromFile(const std::string& fileName,
         return false;
     }
 
-    vertices.clear();
-    vertices.reserve(N);
+    vertices.clear();      // Очищаем массив вершин
+    vertices.reserve(N);   // Резервируем память под N вершин
 
-    // Чтение N строк с вершинами
+    // Чтение N строк с вершинами полигона
     for (int i = 0; i < N; ++i) {
         if (!std::getline(fin, line)) {
-            // Недостаточно строк с вершинами
+            // Если строк с вершинами меньше, чем нужно — ошибка: не хватает координат
             err.type = ErrorType::verticesMismatch;
             err.errorLineNumber = lineNumber + 1;
             err.errorLineContent = "";
             err.errorMessage = "Обнаружено несоответствие: число вершин не совпадает с количеством заданных координат. Добавьте или уберите координаты.";
             return false;
         }
-        ++lineNumber;
+        ++lineNumber; // Переходим к следующей строке
 
+        // Проверка: строка не пуста
         if (!checkEmptyLine(line, err, lineNumber)) return false;
+        // Проверка: количество элементов в строке (например, не больше двух координат)
         if (!checkInvalidElementCount(line, err, lineNumber)) return false;
+        // Проверка: нет ли некорректных символов
         if (!checkInvalidCharacters(line, err, lineNumber)) return false;
 
         int x, y;
+        // Парсим координаты из строки (должны быть два целых числа)
         if (!parsePointLine(line, x, y)) {
+            // Если не удалось распарсить — ошибка: не целое число
             err.type = ErrorType::pointNotInteger;
             err.errorLineNumber = lineNumber;
             err.errorLineContent = line;
@@ -103,26 +111,33 @@ bool FileParser::readFromFile(const std::string& fileName,
             return false;
         }
 
+        // Проверяем, что координаты не выходят за допустимый диапазон
         if (!checkOutOfRangeCoordinates(x, y, err, lineNumber, true)) return false;
 
+        // Добавляем вершину в массив
         vertices.emplace_back(x, y);
     }
 
-    // Чтение последней строки: проверяемая точка
+    // Чтение последней строки: координаты проверяемой точки
     if (!std::getline(fin, line)) {
+        // Если нет строки для точки — ошибка: не хватает данных
         err.type = ErrorType::verticesMismatch;
         err.errorLineNumber = lineNumber + 1;
         err.errorLineContent = "";
         err.errorMessage = "Обнаружено несоответствие: число вершин не совпадает с количеством заданных координат. Добавьте или уберите координаты.";
         return false;
     }
-    ++lineNumber;
+    ++lineNumber; // Счётчик строк
 
+    // Проверяем, что строка не пустая
     if (!checkEmptyLine(line, err, lineNumber)) return false;
+    // Проверяем, что количество элементов в строке корректное (только две координаты)
     if (!checkInvalidElementCount(line, err, lineNumber)) return false;
+    // Проверяем отсутствие некорректных символов
     if (!checkInvalidCharacters(line, err, lineNumber)) return false;
 
     int tx, ty;
+    // Парсим координаты проверяемой точки
     if (!parsePointLine(line, tx, ty)) {
         err.type = ErrorType::pointNotInteger;
         err.errorLineNumber = lineNumber;
@@ -130,12 +145,14 @@ bool FileParser::readFromFile(const std::string& fileName,
         err.errorMessage = "Координата не является целым числом. Допустимы только целые числа.";
         return false;
     }
+    // Проверяем диапазон координат точки
     if (!checkOutOfRangeCoordinates(tx, ty, err, lineNumber, false)) return false;
+    // Запоминаем проверяемую точку
     testPoint = Point(tx, ty);
 
-    // Проверка на наличие лишних строк (непустых)
+    // Проверка на наличие лишних строк (например, если после последней строки есть ещё непустые строки)
     if (std::getline(fin, line)) {
-        bool onlySpaces = true;
+        bool onlySpaces = true; // Флаг: строка содержит только пробелы/табуляции
         for (char c : line) {
             if (!std::isspace(static_cast<unsigned char>(c))) {
                 onlySpaces = false;
@@ -143,6 +160,7 @@ bool FileParser::readFromFile(const std::string& fileName,
             }
         }
         if (!onlySpaces) {
+            // Если есть ещё содержательные строки — ошибка
             err.type = ErrorType::verticesMismatch;
             err.errorLineNumber = lineNumber + 1;
             err.errorLineContent = line;
@@ -151,7 +169,7 @@ bool FileParser::readFromFile(const std::string& fileName,
         }
     }
 
-    return true;
+    return true; // Всё успешно
 }
 
 bool FileParser::checkEmptyLine(const std::string& line, Error& err, int lineNumber) {
