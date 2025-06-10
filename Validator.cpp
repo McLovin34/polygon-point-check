@@ -164,34 +164,34 @@ bool Validator::checkPolygonShape(const std::vector<Point>& vertices, Error& err
 }
 
 bool Validator::validate(const std::vector<Point>& vertices, const Point& testPoint, Error& err) {
-    // 1. Количество вершин
+    // 1. Проверка количества вершин (должно быть от 3 до 1000)
     if (!checkVertexCount((int)vertices.size(), err)) return false;
 
-    // 2. Дублирующиеся вершины
+    // 2. Проверка на дублирующиеся вершины
     if (!checkDuplicateVertices(vertices, err)) return false;
 
-    // 3. Проверка диапазона для каждой вершины
+    // 3. Проверка диапазона координат для каждой вершины
     for (int i = 0; i < (int)vertices.size(); ++i) {
-        if (!checkVertexRange(vertices[i], err, i + 2)) {
+        if (!checkVertexRange(vertices[i], err, i + 2)) {  // +2 — смещение из-за строки с N и индексации с 0
             return false;
         }
     }
 
-    // 4. Порядок обхода
+    // 4. Проверка порядка обхода вершин (ориентированная площадь должна быть положительной)
     if (!checkCorrectVertexOrder(vertices, err)) return false;
 
-    // 5. Простота (отсутствие самопересечений) и невыпуклость
+    // 5. Проверка простоты многоугольника и его невыпуклости
     if (!checkPolygonShape(vertices, err)) return false;
 
-    // 6. Диапазон тестовой точки
+    // 6. Проверка диапазона координат тестовой точки
     if (testPoint.x < -999 || testPoint.x > 999 || testPoint.y < -999 || testPoint.y > 999) {
-        err.type = ErrorType::pointOutOfRange;
-        err.errorLineNumber = static_cast<int>(vertices.size()) + 2;
-        err.errorLineContent = std::to_string(testPoint.x) + ";" + std::to_string(testPoint.y);
+        err.type = ErrorType::pointOutOfRange;  // Тип ошибки — тестовая точка вне диапазона
+        err.errorLineNumber = static_cast<int>(vertices.size()) + 2;  // Номер строки с точкой для проверки
+        err.errorLineContent = std::to_string(testPoint.x) + ";" + std::to_string(testPoint.y);  // Координаты точки
         err.errorMessage = "Проверяемая точка (" + std::to_string(testPoint.x) + ";" + std::to_string(testPoint.y) +
             ") выходит за допустимый диапазон [-999, 999].";
         return false;
     }
 
-    return true;
+    return true;  // Все проверки пройдены, данные валидны
 }
