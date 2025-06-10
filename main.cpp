@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+
     // 1) Синтаксическое чтение
     FileParser parser;
     std::vector<Point> vertices;
