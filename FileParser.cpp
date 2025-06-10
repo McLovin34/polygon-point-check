@@ -299,22 +299,34 @@ bool FileParser::parsePointLine(const std::string& line, int& x, int& y) {
 }
 
 bool FileParser::checkOutOfRangeCoordinates(int x, int y, Error& err, int lineNumber, bool isVertex) {
+    // Проверяем, что координаты x и y лежат в допустимом диапазоне [-999, 999]
     if (x < -999 || x > 999 || y < -999 || y > 999) {
+        // Если координаты выходят за пределы допустимого диапазона
         if (isVertex) {
+            // Ошибка для вершины полигона
             err.type = ErrorType::coordinateOutOfRange;
+            // Указываем номер строки с ошибкой
             err.errorLineNumber = lineNumber;
+            // Содержимое строки с ошибочными координатами
             err.errorLineContent = std::to_string(x) + ";" + std::to_string(y);
+            // Сообщение об ошибке для вершины
             err.errorMessage = "Координаты вершины (" + std::to_string(x) + ";" + std::to_string(y) +
                 ") выходят за допустимый диапазон [-999, 999].";
         }
         else {
+            // Ошибка для проверяемой точки
             err.type = ErrorType::pointOutOfRange;
+            // Указываем номер строки с ошибкой
             err.errorLineNumber = lineNumber;
+            // Содержимое строки с ошибочными координатами
             err.errorLineContent = std::to_string(x) + ";" + std::to_string(y);
+            // Сообщение об ошибке для проверяемой точки
             err.errorMessage = "Проверяемая точка (" + std::to_string(x) + ";" + std::to_string(y) +
                 ") выходит за допустимый диапазон [-999, 999].";
         }
+        // Возвращаем false — координаты вне допустимого диапазона
         return false;
     }
+    // Если координаты в пределах допустимого диапазона, возвращаем true
     return true;
 }
