@@ -45,15 +45,16 @@ int main(int argc, char* argv[]) {
     }
     // если argc==1 — остаются input.txt и output.txt
 
-    // 1) Синтаксическое чтение
-    FileParser parser;
-    std::vector<Point> vertices;
-    Point testPoint;
-    Error err;
+// 1) Синтаксическое чтение данных из файла
+    FileParser parser;  // Создаём объект для чтения данных из файла
+    std::vector<Point> vertices;  // Вектор для хранения вершин многоугольника
+    Point testPoint;  // Точка для проверки принадлежности
+    Error err;  // Объект для хранения ошибок
 
+    // Попытка прочитать данные из файла
     if (!parser.readFromFile(inputPath, vertices, testPoint, err)) {
-        IOManager::writeErrorToConsole(err);
-        return 2;
+        IOManager::writeErrorToConsole(err);  // Если произошла ошибка, выводим её в консоль
+        return 2;  // Завершаем программу с кодом ошибки 2
     }
 
     // 2) Семантическая валидация
