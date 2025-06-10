@@ -258,25 +258,42 @@ bool FileParser::checkNonIntegerCoordinates(const std::string& line, Error& err,
 }
 
 bool FileParser::parsePointLine(const std::string& line, int& x, int& y) {
+    // Ќаходим позицию точки с зап€той в строке
     size_t sep = line.find(';');
+    // ≈сли точка с зап€той не найдена, возвращаем false
     if (sep == std::string::npos) return false;
-    std::string xs = line.substr(0, sep);
-    std::string ys = line.substr(sep + 1);
 
+    // »звлекаем подстроки до и после точки с зап€той
+    std::string xs = line.substr(0, sep);         // ѕерва€ часть Ч до точки с зап€той (x-координата)
+    std::string ys = line.substr(sep + 1);       // ¬тора€ часть Ч после точки с зап€той (y-координата)
+
+    // ≈сли одна из подстрок пуста€, возвращаем false (ошибка формата)
     if (xs.empty() || ys.empty()) return false;
 
     try {
         size_t pos;
+        // ѕреобразуем строку xs в число типа long (дл€ проверки на переполнение)
         long lx = std::stol(xs, &pos);
+        // ≈сли не вс€ строка была обработана как число, ошибка
         if (pos != xs.size()) return false;
+
+        // ѕреобразуем строку ys в число типа long
         long ly = std::stol(ys, &pos);
+        // ≈сли не вс€ строка была обработана как число, ошибка
         if (pos != ys.size()) return false;
+
+        // ѕровер€ем, что значени€ lx и ly лежат в пределах допустимого диапазона дл€ int
         if (lx < INT_MIN || lx > INT_MAX || ly < INT_MIN || ly > INT_MAX) return false;
+
+        // ѕреобразуем long в int и сохран€ем в x и y
         x = static_cast<int>(lx);
         y = static_cast<int>(ly);
+
+        // ”спешное завершение, возвращаем true
         return true;
     }
     catch (...) {
+        // ≈сли произошла ошибка при парсинге (например, строка не €вл€етс€ числом), возвращаем false
         return false;
     }
 }
