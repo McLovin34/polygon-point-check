@@ -57,11 +57,12 @@ int main(int argc, char* argv[]) {
         return 2;  // Завершаем программу с кодом ошибки 2
     }
 
-    // 2) Семантическая валидация
-    Validator validator;
+    // 2) Семантическая валидация данных
+    Validator validator;  // Создаём объект для валидации данных
+    // Проверка, что данные о многоугольнике и точке корректны
     if (!validator.validate(vertices, testPoint, err)) {
-        IOManager::writeErrorToConsole(err);
-        return 3;
+        IOManager::writeErrorToConsole(err);  // Если данные некорректны, выводим ошибку в консоль
+        return 3;  // Завершаем программу с кодом ошибки 3
     }
 
     // 3) Проверка корректности многоугольника
