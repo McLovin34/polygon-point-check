@@ -1,51 +1,85 @@
 #pragma once
-
 #include "Error.h"
 #include "Point.h"
 #include <vector>
+#include <set>
 
-/// Класс Polygon представляет невыпуклый многоугольник и умеет:
-///  1) проверить свою корректность (isValid),
-///  2) проверить принадлежность точки (contains).
-class Polygon {
+/// \brief Класс Validator предназначен для полной проверки входных данных до построения Polygon.
+/// 
+/// Проверяет:
+/// - Количество вершин и диапазон координат
+/// - Отсутствие дубликатов вершин
+/// - Правильный порядок обхода (ориентация)
+/// - Простоту и невыпуклость многоугольника (набор геометрических проверок)
+/// - Диапазон тестовой точки
+class Validator {
 public:
-    /// Вектор вершин, предполагается, что они уже проверены на базовый синтаксис и диапазоны
-    std::vector<Point> vertices;
+    /// Конструктор по умолчанию
+    Validator() = default;
 
-    Polygon() = default;
-    explicit Polygon(const std::vector<Point>& v) : vertices(v) {}
-
-    /// \brief Проверяет, что многоугольник корректен (прост, невыпукл, порядок против часовой),
-    ///        заполняет err, если найдена ошибка.
-    /// \return true, если всё ок; false — в противном случае.
-    bool isValid(Error& err) const;
-
-    /// \brief Определяет, принадлежит ли точка p многоугольнику.
-    /// \param[in] p – проверяемая точка.
-    /// \return true, если точка внутри или на границе; false, если снаружи.
-    bool contains(const Point& p) const;
+    /// \brief Главная функция проверки: вызывает все остальные проверки по шагам.
+    /// \details Проверяет количество, уникальность, диапазон координат, порядок обхода,
+    ///          простоту и невыпуклость многоугольника, диапазон тестовой точки.
+    /// \param[in]  vertices  Вектор вершин многоугольника.
+    /// \param[in]  testPoint Проверяемая точка.
+    /// \param[out] err       Объект с описанием первой найденной ошибки.
+    /// \return true, если все проверки пройдены; false — если есть ошибка.
+    bool validate(const std::vector<Point>& vertices, const Point& testPoint, Error& err);
 
 private:
-    // --- Вспомогательные геометрические методы, зависят от класса Polygon ---
+    /// \brief Проверка количества вершин: [3, 1000].
+    /// \param[in]  vertexCount Количество вершин.
+    /// \param[out] err         Объект ошибки.
+    /// \return true, если число допустимо.
+    bool checkVertexCount(int vertexCount, Error& err);
 
-    /// Проверка, что три точки коллинеарны
-    bool checkCollinearity(const Point& a, const Point& b, const Point& c) const;
+    /// \brief Проверка на отсутствие дубликатов среди вершин.
+    /// \param[in]  vertices Вектор вершин.
+    /// \param[out] err      Объект ошибки.
+    /// \return true, если дубликатов нет.
+    bool checkDuplicateVertices(const std::vector<Point>& vertices, Error& err);
 
-    /// Проверка на пересечение двух отрезков a1–a2 и b1–b2
-    bool checkIntersection(const Point& a1, const Point& a2, const Point& b1, const Point& b2) const;
+    /// \brief Проверка диапазона координат точки: [-999, 999] для обеих координат.
+    /// \param[in]  p         Проверяемая точка.
+    /// \param[out] err       Объект ошибки.
+    /// \param[in]  lineNumber Номер строки для сообщения об ошибке.
+    /// \return true, если точка в допустимых границах.
+    bool checkVertexRange(const Point& p, Error& err, int lineNumber);
 
-    /// Вычисление ориентированной площади (удвоенной) – формула Гаусса
-    long long signedArea() const;
+    /// \brief Проверка правильного порядка обхода вершин (ориентированной площади).
+    /// \param[in]  vertices Вектор вершин.
+    /// \param[out] err      Объект ошибки.
+    /// \return true, если обход против часовой (площадь положительна).
+    bool checkCorrectVertexOrder(const std::vector<Point>& vertices, Error& err);
 
-    /// Вспомогательная: проверка, что точка q лежит на отрезке pr
-    bool onSegment(const Point& p, const Point& q, const Point& r) const;
+    /// \brief Проверка простоты, невыпуклости и отсутствия коллинеарных троек.
+    /// \param[in]  vertices Вектор вершин.
+    /// \param[out] err      Объект ошибки.
+    /// \return true, если форма корректна.
+    bool checkPolygonShape(const std::vector<Point>& vertices, Error& err);
 
-    /// Вспомогательная: вычисление ориентации тройки точек (p, q, r)
-    /// \return 0 — коллинеарны, 1 — по часовой, 2 — против часовой
-    int orientation(const Point& p, const Point& q, const Point& r) const;
+    // ===== Мини-геометрия для внутренних проверок (не для построения Polygon) =====
 
-    /// Проверка невыпуклости и самопересечений (часть isValid)
-    bool checkPolygonShape(Error& err) const;
+    /// \brief Вычисляет удвоенную ориентированную площадь по формуле Гаусса.
+    /// \param[in] v Вектор вершин.
+    /// \return Удвоенная площадь (может быть отрицательной).
+    long long signedArea(const std::vector<Point>& v);
+
+    /// \brief Проверка: коллинеарны ли три точки.
+    /// \return true, если точки на одной прямой.
+    bool checkCollinearity(const Point& a, const Point& b, const Point& c);
+
+    /// \brief Проверка: пересекаются ли два отрезка.
+    /// \return true, если отрезки имеют пересечение (не только по концам).
+    bool checkIntersection(const Point& a1, const Point& a2, const Point& b1, const Point& b2);
+
+    /// \brief Проверка: лежит ли точка q на отрезке pr.
+    /// \return true, если q строго между p и r (или совпадает с концом).
+    bool onSegment(const Point& p, const Point& q, const Point& r);
+
+    /// \brief Определяет ориентацию тройки точек (p, q, r).
+    /// \return 0 — коллинеарны, 1 — по часовой, 2 — против часовой стрелки.
+    int orientation(const Point& p, const Point& q, const Point& r);
 };
 
 

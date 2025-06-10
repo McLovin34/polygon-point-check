@@ -209,3 +209,8 @@ bool Polygon::contains(const Point& p) const {
     }
     return inside;  // ¬ернЄм итоговое значение: true Ч внутри, false Ч вне многоугольника
 }
+
+Polygon::Polygon(const std::vector<Point>& v)
+    : vertices(v)
+{
+}
