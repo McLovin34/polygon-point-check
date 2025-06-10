@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-/// Структура точки с целыми координатами
+/// Структура точки с float координатами
 struct Point {
-    int x;
-    int y;
+    float x;  // Изменено на float
+    float y;  // Изменено на float
 
-    Point(int x_ = 0, int y_ = 0) : x(x_), y(y_) {}
+    Point(float x_ = 0.0f, float y_ = 0.0f) : x(x_), y(y_) {}
 
     // Операторы для сравнения (нужно для std::set или std::map)
     bool operator==(const Point& other) const {
@@ -18,9 +18,3 @@ struct Point {
         return y < other.y;
     }
 };
-
-// Удобная печать точки в формате "(x;y)"
-inline std::ostream& operator<<(std::ostream& os, const Point& p) {
-    os << "(" << p.x << ";" << p.y << ")";
-    return os;
-}
