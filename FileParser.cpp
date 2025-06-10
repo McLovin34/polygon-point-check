@@ -191,18 +191,28 @@ bool FileParser::checkEmptyLine(const std::string& line, Error& err, int lineNum
 }
 
 bool FileParser::checkInvalidElementCount(const std::string& line, Error& err, int lineNumber) {
+    // Считаем количество символов ';' в строке
     size_t countSemicolons = 0;
     for (char c : line) {
-        if (c == ';') ++countSemicolons;
+        if (c == ';') ++countSemicolons;  // Если символ — точка с запятой, увеличиваем счётчик
     }
+
+    // Проверяем, что точка с запятой встречается ровно один раз
     if (countSemicolons != 1) {
+        // Если количество точек с запятой не равно 1 — ошибка формата
         err.type = ErrorType::wrongElementCountInLine;
+        // Указываем номер строки с ошибкой
         err.errorLineNumber = lineNumber;
+        // Содержимое строки, в которой обнаружена ошибка
         err.errorLineContent = line;
+        // Сообщение об ошибке
         err.errorMessage = "Некорректное количество элементов в строке: " + line +
             ". Каждая точка должна содержать два целых числа, разделённых ;.";
+        // Возвращаем false — ошибка
         return false;
     }
+
+    // Если ошибок нет — возвращаем true
     return true;
 }
 
