@@ -66,10 +66,11 @@ int main(int argc, char* argv[]) {
     }
 
     // 3) Проверка корректности многоугольника
-    Polygon polygon(vertices);
+    Polygon polygon(vertices);  // Создаём объект многоугольника, передавая вектор вершин
+    // Проверяем, является ли многоугольник корректным (проверка на выпуклость, отсутствие самопересечений и т.д.)
     if (!polygon.isValid(err)) {
-        IOManager::writeErrorToConsole(err);
-        return 4;
+        IOManager::writeErrorToConsole(err);  // Если многоугольник некорректен, выводим ошибку в консоль
+        return 4;  // Завершаем программу с кодом ошибки 4
     }
 
     // 4) Проверка принадлежности точки
