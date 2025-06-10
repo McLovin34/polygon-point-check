@@ -4,329 +4,219 @@
 #include <cctype>
 #include <climits>
 
-bool FileParser::readFromFile(const std::string& fileName,
-    std::vector<Point>& vertices,
-    Point& testPoint,
-    Error& err) {
-    // Открываем входной файл для чтения по имени fileName
-    std::ifstream fin(fileName);
+// Функция чтения данных из файла
+bool FileParser::readFromFile(const std::string& fileName, std::vector<Point>& vertices, Point& testPoint, Error& err) {
+    std::ifstream fin(fileName);  // Открываем файл для чтения
+    err.errorInputFileWay = fileName;  // Записываем путь к файлу в объект ошибки
 
-    // Записываем путь к входному файлу в объект ошибки (для информативности)
-    err.errorInputFileWay = fileName;
-
-    // Проверяем, успешно ли открыт файл
+    // Проверяем, был ли файл открыт
     if (!fin.is_open()) {
-        // Если файл не открыт — устанавливаем тип ошибки "входной файл не существует"
-        err.type = ErrorType::inputFileNotExist;
-        // Записываем детальное сообщение об ошибке
-        err.errorMessage = "Неверно указан файл с входными данными. Возможно, файл не существует или нет прав на чтение.";
-        // Возвращаем false — невозможно продолжить
-        return false;
+        err.type = ErrorType::inputFileNotExist;  // Устанавливаем тип ошибки, если файл не существует
+        err.errorMessage = "Неверно указан файл с входными данными. Возможно, файл не существует или нет прав на чтение.";  // Сообщение об ошибке
+        return false;  // Возвращаем false, если файл не открылся
     }
 
-    std::string line;   // Строка для хранения текущей строки файла
-    int lineNumber = 0; // Счётчик номера текущей строки (для отчётности об ошибках)
+    std::string line;  // Строка для хранения данных, прочитанных из файла
+    int lineNumber = 0;  // Счётчик строк
 
-    // Чтение первой строки: количество вершин
+    // Чтение первой строки (количество вершин)
     if (!std::getline(fin, line)) {
-        // Если не удалось прочитать первую строку — файл пуст
-        err.type = ErrorType::emptyFile;
-        err.errorLineNumber = 0;
-        err.errorLineContent = "";
-        err.errorMessage = "Пустой файл";
-        return false;
+        err.type = ErrorType::emptyFile;  // Если файл пуст, записываем ошибку
+        err.errorLineNumber = 0;  // Указываем, что ошибка на первой строке
+        err.errorMessage = "Пустой файл";  // Сообщение об ошибке
+        return false;  // Возвращаем false, так как файл пуст
     }
-    ++lineNumber; // Увеличиваем номер строки (теперь lineNumber = 1)
+    ++lineNumber;  // Увеличиваем счётчик строк
 
-    // Проверка: не является ли строка пустой или состоящей только из пробелов
+    // Проверяем, не пуста ли строка
     if (!checkEmptyLine(line, err, lineNumber)) return false;
 
-    // Первая строка НЕ должна содержать символ ';'
+    // Проверяем, что первая строка не содержит лишних символов, таких как ';'
     if (line.find(';') != std::string::npos) {
-        // Если есть лишние элементы — ошибка формата первой строки
-        err.type = ErrorType::wrongElementCountInLine;
-        err.errorLineNumber = lineNumber;
-        err.errorLineContent = line;
+        err.type = ErrorType::wrongElementCountInLine;  // Устанавливаем ошибку, если символы не соответствуют формату
+        err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+        err.errorLineContent = line;  // Записываем саму строку с ошибкой
         err.errorMessage = "Некорректное количество элементов в строке: " + line +
-            ". Первая строка должна содержать только количество вершин.";
-        return false;
+            ". Первая строка должна содержать только количество вершин.";  // Сообщение об ошибке
+        return false;  // Возвращаем false
     }
 
-    // Попытка преобразовать строку в целое число N (количество вершин)
-    int N;
+    // Преобразуем количество вершин из строки в число типа float
+    float N;
     try {
         size_t pos;
-        long tmp = std::stol(line, &pos);         // Преобразуем строку в long
-        if (pos != line.size()) throw std::invalid_argument("not integer"); // Проверка, что вся строка — число
-        N = static_cast<int>(tmp);
+        N = std::stof(line, &pos);  // Преобразуем строку в float
+        if (pos != line.size()) throw std::invalid_argument("not a number");  // Если строка не была целиком преобразована в число, вызываем ошибку
     }
     catch (...) {
-        // Если не получилось преобразовать — ошибка: не целое число
-        err.type = ErrorType::pointNotInteger;
-        err.errorLineNumber = lineNumber;
-        err.errorLineContent = line;
-        err.errorMessage = "Координата не является целым числом. Допустимы только целые числа.";
-        return false;
+        err.type = ErrorType::pointNotInteger;  // Ошибка при преобразовании строки в число
+        err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+        err.errorLineContent = line;  // Записываем строку с ошибкой
+        err.errorMessage = "Число вершин не является числом с плавающей запятой или целым числом.";  // Сообщение об ошибке
+        return false;  // Возвращаем false, так как число вершин неверно
     }
 
-    // Проверяем, что N в диапазоне [3, 1000]
+    // Проверяем, что количество вершин в допустимом диапазоне
     if (N < 3 || N > 1000) {
-        err.type = ErrorType::invalidVertexCount;
-        err.errorLineNumber = lineNumber;
-        err.errorLineContent = line;
-        err.errorMessage = "Некорректное количество вершин. Допустимый диапазон: [3, 1000].";
-        return false;
+        err.type = ErrorType::invalidVertexCount;  // Ошибка с количеством вершин
+        err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+        err.errorMessage = "Недопустимое количество вершин.";  // Сообщение об ошибке
+        return false;  // Возвращаем false, если количество вершин вне диапазона
     }
 
-    vertices.clear();      // Очищаем массив вершин
-    vertices.reserve(N);   // Резервируем память под N вершин
+    vertices.clear();  // Очищаем вектор вершин перед добавлением новых
+    vertices.reserve(N);  // Резервируем память для хранения вершин
 
-    // Чтение N строк с вершинами полигона
+    // Чтение координат N вершин
     for (int i = 0; i < N; ++i) {
         if (!std::getline(fin, line)) {
-            // Если строк с вершинами меньше, чем нужно — ошибка: не хватает координат
-            err.type = ErrorType::verticesMismatch;
-            err.errorLineNumber = lineNumber + 1;
-            err.errorLineContent = "";
-            err.errorMessage = "Обнаружено несоответствие: число вершин не совпадает с количеством заданных координат. Добавьте или уберите координаты.";
-            return false;
+            err.type = ErrorType::verticesMismatch;  // Ошибка, если количество вершин не совпадает с данными
+            err.errorLineNumber = lineNumber + 1;  // Указываем строку с ошибкой
+            err.errorMessage = "Не хватает координат для всех вершин.";  // Сообщение об ошибке
+            return false;  // Возвращаем false
         }
-        ++lineNumber; // Переходим к следующей строке
+        ++lineNumber;  // Увеличиваем номер строки
 
-        // Проверка: строка не пуста
-        if (!checkEmptyLine(line, err, lineNumber)) return false;
-        // Проверка: количество элементов в строке (например, не больше двух координат)
-        if (!checkInvalidElementCount(line, err, lineNumber)) return false;
-        // Проверка: нет ли некорректных символов
-        if (!checkInvalidCharacters(line, err, lineNumber)) return false;
-
-        int x, y;
-        // Парсим координаты из строки (должны быть два целых числа)
-        if (!parsePointLine(line, x, y)) {
-            // Если не удалось распарсить — ошибка: не целое число
-            err.type = ErrorType::pointNotInteger;
-            err.errorLineNumber = lineNumber;
-            err.errorLineContent = line;
-            err.errorMessage = "Координата не является целым числом. Допустимы только целые числа.";
-            return false;
+        float x, y;
+        if (!parsePointLine(line, x, y)) {  // Парсим координаты из строки
+            err.type = ErrorType::pointNotInteger;  // Ошибка при преобразовании координат
+            err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+            err.errorMessage = "Некорректный формат координат для вершины.";  // Сообщение об ошибке
+            return false;  // Возвращаем false
         }
 
-        // Проверяем, что координаты не выходят за допустимый диапазон
+        // Проверяем, что координаты вершин находятся в допустимом диапазоне
         if (!checkOutOfRangeCoordinates(x, y, err, lineNumber, true)) return false;
 
-        // Добавляем вершину в массив
-        vertices.emplace_back(x, y);
+        vertices.emplace_back(x, y);  // Добавляем вершину в вектор
     }
 
-    // Чтение последней строки: координаты проверяемой точки
+    // Чтение координат тестовой точки
     if (!std::getline(fin, line)) {
-        // Если нет строки для точки — ошибка: не хватает данных
-        err.type = ErrorType::verticesMismatch;
-        err.errorLineNumber = lineNumber + 1;
-        err.errorLineContent = "";
-        err.errorMessage = "Обнаружено несоответствие: число вершин не совпадает с количеством заданных координат. Добавьте или уберите координаты.";
-        return false;
+        err.type = ErrorType::verticesMismatch;  // Ошибка при чтении тестовой точки
+        err.errorLineNumber = lineNumber + 1;  // Указываем строку с ошибкой
+        err.errorMessage = "Не хватает данных для тестовой точки.";  // Сообщение об ошибке
+        return false;  // Возвращаем false
     }
-    ++lineNumber; // Счётчик строк
 
-    // Проверяем, что строка не пустая
-    if (!checkEmptyLine(line, err, lineNumber)) return false;
-    // Проверяем, что количество элементов в строке корректное (только две координаты)
-    if (!checkInvalidElementCount(line, err, lineNumber)) return false;
-    // Проверяем отсутствие некорректных символов
-    if (!checkInvalidCharacters(line, err, lineNumber)) return false;
-
-    int tx, ty;
-    // Парсим координаты проверяемой точки
-    if (!parsePointLine(line, tx, ty)) {
-        err.type = ErrorType::pointNotInteger;
-        err.errorLineNumber = lineNumber;
-        err.errorLineContent = line;
-        err.errorMessage = "Координата не является целым числом. Допустимы только целые числа.";
-        return false;
+    ++lineNumber;  // Увеличиваем номер строки
+    float tx, ty;
+    if (!parsePointLine(line, tx, ty)) {  // Парсим координаты тестовой точки
+        err.type = ErrorType::pointNotInteger;  // Ошибка при преобразовании координат
+        err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+        err.errorMessage = "Некорректные координаты тестовой точки.";  // Сообщение об ошибке
+        return false;  // Возвращаем false
     }
-    // Проверяем диапазон координат точки
+
+    // Проверяем, что координаты тестовой точки находятся в допустимом диапазоне
     if (!checkOutOfRangeCoordinates(tx, ty, err, lineNumber, false)) return false;
-    // Запоминаем проверяемую точку
-    testPoint = Point(tx, ty);
 
-    // Проверка на наличие лишних строк (например, если после последней строки есть ещё непустые строки)
-    if (std::getline(fin, line)) {
-        bool onlySpaces = true; // Флаг: строка содержит только пробелы/табуляции
-        for (char c : line) {
-            if (!std::isspace(static_cast<unsigned char>(c))) {
-                onlySpaces = false;
-                break;
-            }
-        }
-        if (!onlySpaces) {
-            // Если есть ещё содержательные строки — ошибка
-            err.type = ErrorType::verticesMismatch;
-            err.errorLineNumber = lineNumber + 1;
-            err.errorLineContent = line;
-            err.errorMessage = "Обнаружено несоответствие: дополнительные строки после координат.";
-            return false;
-        }
-    }
+    testPoint = Point(tx, ty);  // Сохраняем тестовую точку
 
-    return true; // Всё успешно
+    return true;  // Возвращаем true, если все данные успешно считаны
 }
 
+// Проверка, что строка не пуста
 bool FileParser::checkEmptyLine(const std::string& line, Error& err, int lineNumber) {
-    // Проверяем: если строка пустая
-    if (line.empty()) {
-        // Устанавливаем тип ошибки: найдена пустая строка
-        err.type = ErrorType::emptyLineFound;
-        // Записываем номер строки, где обнаружена пустая строка
-        err.errorLineNumber = lineNumber;
-        // Очищаем содержимое строки (пустая строка)
-        err.errorLineContent = "";
-        // Формируем подробное сообщение об ошибке
-        err.errorMessage = "Обнаружена пустая строка во входных данных. Удалите лишние строки.";
-        // Возвращаем false — обнаружена ошибка
-        return false;
+    if (line.empty()) {  // Если строка пуста
+        err.type = ErrorType::emptyLineFound;  // Ошибка с пустой строкой
+        err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+        err.errorLineContent = "";  // Пустая строка
+        err.errorMessage = "Обнаружена пустая строка во входных данных. Удалите лишние строки.";  // Сообщение об ошибке
+        return false;  // Возвращаем false
     }
-    // Строка не пустая — всё хорошо
-    return true;
+    return true;  // Строка не пуста
 }
 
+// Проверка, что в строке ровно один символ ';'
 bool FileParser::checkInvalidElementCount(const std::string& line, Error& err, int lineNumber) {
-    // Считаем количество символов ';' в строке
-    size_t countSemicolons = 0;
+    size_t countSemicolons = 0;  // Счётчик точек с запятой
     for (char c : line) {
-        if (c == ';') ++countSemicolons;  // Если символ — точка с запятой, увеличиваем счётчик
+        if (c == ';') ++countSemicolons;  // Увеличиваем счётчик, если символ ';'
     }
 
-    // Проверяем, что точка с запятой встречается ровно один раз
-    if (countSemicolons != 1) {
-        // Если количество точек с запятой не равно 1 — ошибка формата
-        err.type = ErrorType::wrongElementCountInLine;
-        // Указываем номер строки с ошибкой
-        err.errorLineNumber = lineNumber;
-        // Содержимое строки, в которой обнаружена ошибка
-        err.errorLineContent = line;
-        // Сообщение об ошибке
+    if (countSemicolons != 1) {  // Если точка с запятой встречается не один раз
+        err.type = ErrorType::wrongElementCountInLine;  // Ошибка в количестве элементов
+        err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+        err.errorLineContent = line;  // Записываем строку с ошибкой
         err.errorMessage = "Некорректное количество элементов в строке: " + line +
-            ". Каждая точка должна содержать два целых числа, разделённых ;.";
-        // Возвращаем false — ошибка
-        return false;
+            ". Каждая точка должна содержать два целых числа, разделённых ;.";  // Сообщение об ошибке
+        return false;  // Возвращаем false
     }
-
-    // Если ошибок нет — возвращаем true
-    return true;
+    return true;  // Строка корректна
 }
 
+// Проверка, что все символы в строке допустимы
 bool FileParser::checkInvalidCharacters(const std::string& line, Error& err, int lineNumber) {
-    // Перебираем все символы в строке
     for (char c : line) {
-        // Проверяем, является ли символ цифрой, минусом или точкой с запятой
-        if (!(std::isdigit(static_cast<unsigned char>(c)) || c == '-' || c == ';')) {
-            // Если встретился недопустимый символ, фиксируем ошибку
-            err.type = ErrorType::invalidCharacters;
-            // Указываем номер строки с ошибкой
-            err.errorLineNumber = lineNumber;
-            // Записываем содержимое строки с ошибкой
-            err.errorLineContent = line;
-            // Формируем сообщение об ошибке
-            err.errorMessage = "Входные данные содержат некорректные символы. Разрешены только числа, точки с запятой и переводы строк.";
-            // Возвращаем false — ошибка найдена
-            return false;
+        if (!(std::isdigit(static_cast<unsigned char>(c)) || c == '-' || c == ';')) {  // Проверка на цифры, '-' или ';'
+            err.type = ErrorType::invalidCharacters;  // Ошибка с недопустимыми символами
+            err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+            err.errorLineContent = line;  // Записываем строку с ошибкой
+            err.errorMessage = "Входные данные содержат некорректные символы. Разрешены только числа, точки с запятой и переводы строк.";  // Сообщение об ошибке
+            return false;  // Возвращаем false
         }
     }
-
-    // Если все символы корректные, возвращаем true
-    return true;
+    return true;  // Все символы корректны
 }
 
+// Проверка, что координаты можно преобразовать в числа с плавающей запятой или целые
 bool FileParser::checkNonIntegerCoordinates(const std::string& line, Error& err, int lineNumber) {
-    int x, y;
-    // Попытка распарсить строку line как две целые координаты (x и y)
-    if (!parsePointLine(line, x, y)) {
-        // Если парсинг не удался — ошибка: координаты не являются целыми числами
-        err.type = ErrorType::pointNotInteger;
-        // Указываем номер строки с ошибкой
-        err.errorLineNumber = lineNumber;
-        // Записываем содержимое строки, в которой возникла ошибка
-        err.errorLineContent = line;
-        // Формируем сообщение об ошибке
-        err.errorMessage = "Координата не является целым числом. Допустимы только целые числа.";
-        // Возвращаем false — ошибка при парсинге
-        return false;
+    float x, y;
+    if (!parsePointLine(line, x, y)) {  // Парсим координаты
+        err.type = ErrorType::pointNotInteger;  // Ошибка при парсинге
+        err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+        err.errorLineContent = line;  // Записываем строку с ошибкой
+        err.errorMessage = "Координата не является числом с плавающей запятой или целым числом.";  // Сообщение об ошибке
+        return false;  // Возвращаем false
     }
-    // Если парсинг прошёл успешно, возвращаем true
-    return true;
+    return true;  // Координаты корректны
 }
 
-bool FileParser::parsePointLine(const std::string& line, int& x, int& y) {
-    // Находим позицию точки с запятой в строке
-    size_t sep = line.find(';');
-    // Если точка с запятой не найдена, возвращаем false
-    if (sep == std::string::npos) return false;
+// Функция парсинга строки в точку
+bool FileParser::parsePointLine(const std::string& line, float& x, float& y) {
+    size_t sep = line.find(';');  // Находим разделитель ';'
+    if (sep == std::string::npos) return false;  // Если не нашли разделитель, возвращаем false
 
-    // Извлекаем подстроки до и после точки с запятой
-    std::string xs = line.substr(0, sep);         // Первая часть — до точки с запятой (x-координата)
-    std::string ys = line.substr(sep + 1);       // Вторая часть — после точки с запятой (y-координата)
+    std::string xs = line.substr(0, sep);  // Читаем первую часть (x)
+    std::string ys = line.substr(sep + 1);  // Читаем вторую часть (y)
 
-    // Если одна из подстрок пустая, возвращаем false (ошибка формата)
-    if (xs.empty() || ys.empty()) return false;
+    if (xs.empty() || ys.empty()) return false;  // Если хотя бы одна часть пустая, возвращаем false
 
     try {
         size_t pos;
-        // Преобразуем строку xs в число типа long (для проверки на переполнение)
-        long lx = std::stol(xs, &pos);
-        // Если не вся строка была обработана как число, ошибка
-        if (pos != xs.size()) return false;
-
-        // Преобразуем строку ys в число типа long
-        long ly = std::stol(ys, &pos);
-        // Если не вся строка была обработана как число, ошибка
-        if (pos != ys.size()) return false;
-
-        // Проверяем, что значения lx и ly лежат в пределах допустимого диапазона для int
-        if (lx < INT_MIN || lx > INT_MAX || ly < INT_MIN || ly > INT_MAX) return false;
-
-        // Преобразуем long в int и сохраняем в x и y
-        x = static_cast<int>(lx);
-        y = static_cast<int>(ly);
-
-        // Успешное завершение, возвращаем true
-        return true;
+        float lx = std::stof(xs, &pos);  // Преобразуем первую часть в float
+        if (pos != xs.size()) return false;  // Если не вся строка была преобразована в число, возвращаем false
+        float ly = std::stof(ys, &pos);  // Преобразуем вторую часть в float
+        if (pos != ys.size()) return false;  // Если не вся строка была преобразована в число, возвращаем false
+        if (lx < -999.0f || lx > 999.0f || ly < -999.0f || ly > 999.0f) return false;  // Проверяем диапазон
+        x = lx;  // Присваиваем x
+        y = ly;  // Присваиваем y
+        return true;  // Возвращаем true, если всё прошло успешно
     }
     catch (...) {
-        // Если произошла ошибка при парсинге (например, строка не является числом), возвращаем false
-        return false;
+        return false;  // Если произошла ошибка, возвращаем false
     }
 }
 
-bool FileParser::checkOutOfRangeCoordinates(int x, int y, Error& err, int lineNumber, bool isVertex) {
-    // Проверяем, что координаты x и y лежат в допустимом диапазоне [-999, 999]
-    if (x < -999 || x > 999 || y < -999 || y > 999) {
-        // Если координаты выходят за пределы допустимого диапазона
+// Проверка, что координаты находятся в допустимом диапазоне
+bool FileParser::checkOutOfRangeCoordinates(float x, float y, Error& err, int lineNumber, bool isVertex) {
+    if (x < -999.0f || x > 999.0f || y < -999.0f || y > 999.0f) {  // Проверка диапазона
         if (isVertex) {
-            // Ошибка для вершины полигона
-            err.type = ErrorType::coordinateOutOfRange;
-            // Указываем номер строки с ошибкой
-            err.errorLineNumber = lineNumber;
-            // Содержимое строки с ошибочными координатами
-            err.errorLineContent = std::to_string(x) + ";" + std::to_string(y);
-            // Сообщение об ошибке для вершины
+            err.type = ErrorType::coordinateOutOfRange;  // Ошибка с координатами вершины
+            err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+            err.errorLineContent = std::to_string(x) + ";" + std::to_string(y);  // Записываем координаты
             err.errorMessage = "Координаты вершины (" + std::to_string(x) + ";" + std::to_string(y) +
-                ") выходят за допустимый диапазон [-999, 999].";
+                ") выходят за допустимый диапазон [-999, 999].";  // Сообщение об ошибке
         }
         else {
-            // Ошибка для проверяемой точки
-            err.type = ErrorType::pointOutOfRange;
-            // Указываем номер строки с ошибкой
-            err.errorLineNumber = lineNumber;
-            // Содержимое строки с ошибочными координатами
-            err.errorLineContent = std::to_string(x) + ";" + std::to_string(y);
-            // Сообщение об ошибке для проверяемой точки
+            err.type = ErrorType::pointOutOfRange;  // Ошибка с координатами точки
+            err.errorLineNumber = lineNumber;  // Указываем строку с ошибкой
+            err.errorLineContent = std::to_string(x) + ";" + std::to_string(y);  // Записываем координаты
             err.errorMessage = "Проверяемая точка (" + std::to_string(x) + ";" + std::to_string(y) +
-                ") выходит за допустимый диапазон [-999, 999].";
+                ") выходит за допустимый диапазон [-999, 999].";  // Сообщение об ошибке
         }
-        // Возвращаем false — координаты вне допустимого диапазона
-        return false;
+        return false;  // Возвращаем false
     }
-    // Если координаты в пределах допустимого диапазона, возвращаем true
-    return true;
+    return true;  // Возвращаем true, если всё в порядке
 }

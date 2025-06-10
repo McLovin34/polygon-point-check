@@ -39,10 +39,10 @@ private:
     bool checkNonIntegerCoordinates(const std::string& line, Error& err, int lineNumber);
 
     /// Парсинг строки "x;y" → два int (возвращает false, если не удалось)
-    bool parsePointLine(const std::string& line, int& x, int& y);
+    bool parsePointLine(const std::string& line, float& x, float& y);
 
     /// Проверка, что координаты (x, y) лежат в диапазоне [-999, 999]
     /// isVertex = true → проверяем вершину, иначе — проверяемая точка
-    bool checkOutOfRangeCoordinates(int x, int y, Error& err, int lineNumber, bool isVertex);
+    bool checkOutOfRangeCoordinates(float x, float y, Error& err, int lineNumber, bool isVertex);
 };
 
