@@ -8,11 +8,19 @@ bool FileParser::readFromFile(const std::string& fileName,
     std::vector<Point>& vertices,
     Point& testPoint,
     Error& err) {
+    // Открываем входной файл для чтения по имени fileName
     std::ifstream fin(fileName);
+
+    // Записываем путь к входному файлу в объект ошибки (для сообщения об ошибках)
     err.errorInputFileWay = fileName;
+
+    // Проверяем, успешно ли открылся файл
     if (!fin.is_open()) {
+        // Если файл не открыт, устанавливаем тип ошибки "входной файл не существует"
         err.type = ErrorType::inputFileNotExist;
+        // Записываем дополнительное сообщение об ошибке
         err.errorMessage = "Неверно указан файл с входными данными. Возможно, файл не существует или нет прав на чтение.";
+        // Возвращаем false — файл не удалось открыть
         return false;
     }
 
