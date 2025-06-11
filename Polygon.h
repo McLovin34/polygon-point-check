@@ -57,6 +57,7 @@ private:
     /// \param[out] err Структура для описания найденной ошибки.
     /// \return true, если форма многоугольника валидна.
     bool checkPolygonShape(Error& err) const;
+    friend class Tests;
 };
 
 

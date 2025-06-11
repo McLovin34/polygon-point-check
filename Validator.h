@@ -26,6 +26,7 @@ public:
     /// \return true, если все проверки пройдены; false Ч если есть ошибка.
     bool validate(const std::vector<Point>& vertices, const Point& testPoint, Error& err);
 
+
 private:
     /// \brief ѕроверка количества вершин: [3, 1000].
     /// \param[in]  vertexCount  оличество вершин.
@@ -80,6 +81,5 @@ private:
     /// \brief ќпредел€ет ориентацию тройки точек (p, q, r).
     /// \return 0 Ч коллинеарны, 1 Ч по часовой, 2 Ч против часовой стрелки.
     int orientation(const Point& p, const Point& q, const Point& r);
+    friend class Tests;
 };
-
-
