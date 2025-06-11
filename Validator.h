@@ -27,7 +27,7 @@ public:
     bool validate(const std::vector<Point>& vertices, const Point& testPoint, Error& err);
 
 
-private:
+///private:
     /// \brief Проверка количества вершин: [3, 1000].
     /// \param[in]  vertexCount Количество вершин.
     /// \param[out] err         Объект ошибки.

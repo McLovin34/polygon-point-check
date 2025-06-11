@@ -31,7 +31,7 @@ public:
     /// \return true, если точка лежит внутри или на границе; false — если вне многоугольника.
     bool contains(const Point& p) const;
 
-private:
+///private:
     /// \brief Считает удвоенную ориентированную площадь многоугольника (по формуле Гаусса).
     /// \return Удвоенная площадь; знак определяет порядок обхода.
     long long signedArea() const;
@@ -57,7 +57,6 @@ private:
     /// \param[out] err Структура для описания найденной ошибки.
     /// \return true, если форма многоугольника валидна.
     bool checkPolygonShape(Error& err) const;
-    friend class Tests;
 };
 
 
