@@ -117,4 +117,5 @@ scripts\run_tests.bat
 
 
 ## Документация Doxygen для разработчиков
-file:///C:/Users/bogdn/source/repos/Polygon/html/files.html
+html/DoxygenDocumentation.html
+
