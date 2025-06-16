@@ -115,3 +115,6 @@ scripts\run_tests.bat
 * `run_tests.bat` — запускает серию тестов через `polygon.exe` и логирует результаты.
 * `testXX.txt` — файлы с входными данными для батников.
 
+
+## Документация Doxygen для разработчиков
+file:///C:/Users/bogdn/source/repos/Polygon/html/files.html
