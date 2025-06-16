@@ -116,6 +116,4 @@ scripts\run_tests.bat
 * `testXX.txt` — файлы с входными данными для батников.
 
 
-## Документация Doxygen для разработчиков
-html/DoxygenDocumentation.html
 
