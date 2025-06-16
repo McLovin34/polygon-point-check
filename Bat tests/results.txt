@@ -1,0 +1,41 @@
+ 
+TEST1: U_Shape_Inside 
+принадлежит
+принадлежит
+ 
+TEST2: U_Shape_Cavity 
+не принадлежит
+не принадлежит
+ 
+TEST3: C_Shape_Inside 
+принадлежит
+принадлежит
+ 
+TEST4: C_Shape_Hole
+не принадлежит
+не принадлежит
+ 
+TEST5: L_Shape_Inside 
+принадлежит
+принадлежит
+ 
+TEST6: Star_Indent_Outside 
+не принадлежит
+не принадлежит
+ 
+TEST7: neg_frac_U_inside 
+принадлежит
+принадлежит
+ 
+TEST8: rectangle_neg_outside 
+не принадлежит
+не принадлежит
+ 
+TEST09: large20_inside 
+принадлежит
+принадлежит
+ 
+TEST10: large20_outside 
+не принадлежит
+не принадлежит
+ 
