@@ -116,4 +116,4 @@ scripts\run_tests.bat
 * `testXX.txt` — файлы с входными данными для батников.
 
 
-
+https://github.com/McLovin34/polygon-point-check/blob/main/DoxygenDocumentation.html
